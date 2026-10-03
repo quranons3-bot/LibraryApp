@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The app's name under its icon -->
+    <string name="app_name">مكتبة الملفات</string>
+
+    <!-- Where the app loads the library page from. If your GitHub site address changes, change it here. -->
+    <string name="library_url" translatable="false">https://quranons3-bot.github.io/Media/</string>
+</resources>

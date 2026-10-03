@@ -1,0 +1,1261 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مكتبة الملفات</title>
+<meta name="theme-color" content="#0F6E64">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F6E64'/%3E%3Cpath d='M32 22 17 18v24l15 4z' fill='%23FAF7F0'/%3E%3Cpath d='M32 22l15-4v24l-15 4z' fill='%23FAF7F0'/%3E%3C/svg%3E">
+<!--
+  School Library — local folder viewer
+  ------------------------------------------------------------
+  Open this file in Chrome or Edge, choose your files folder, done.
+  Nothing is uploaded anywhere: the page only reads the folder you choose,
+  on this computer.
+
+  To change the title, subtitle, color or default language,
+  edit the SETTINGS block near the top of the script section below
+  (open this file with Notepad or TextEdit).
+-->
+<style>
+:root {
+  --brand: #0F6E64;
+  --brand-ink: #FFFFFF;
+  --brand-text: var(--brand);
+  --brand-soft: rgba(15, 110, 100, 0.10);
+  --brand-soft: color-mix(in srgb, var(--brand) 11%, transparent);
+  --brand-line: rgba(15, 110, 100, 0.30);
+  --brand-line: color-mix(in srgb, var(--brand) 30%, transparent);
+  --bg: #F5F2EA; --surface: #FFFFFF; --surface-2: #FAF8F3;
+  --ink: #1B2627; --ink-2: #56625F; --ink-3: #8A9491;
+  --line: #E6E0D3; --line-2: #EFEADF;
+  --k-audio: #6A4FD6; --k-pdf: #CF4435; --k-ppt: #D9731A; --k-video: #2878BE;
+  --k-image: #2C9468; --k-doc: #2F6DB5; --k-other: #6F7C79;
+  --danger: #B93A2E; --warn-soft: rgba(217, 140, 30, 0.16);
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(20, 30, 30, 0.05), 0 6px 20px rgba(20, 30, 30, 0.06);
+  --shadow-lg: 0 10px 40px rgba(10, 20, 20, 0.18);
+  --font: "Segoe UI", "IBM Plex Sans Arabic", "Noto Sans Arabic", "Geeza Pro", Tahoma, system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111716; --surface: #182120; --surface-2: #1D2726;
+    --ink: #E7ECEA; --ink-2: #A9B4B1; --ink-3: #7C8784;
+    --line: #2A3533; --line-2: #232D2C;
+    --brand-text: #6FD1C3;
+    --brand-text: color-mix(in srgb, var(--brand) 45%, #ffffff);
+    --brand-soft: color-mix(in srgb, var(--brand) 24%, transparent);
+    --brand-line: color-mix(in srgb, var(--brand) 55%, transparent);
+    --k-audio: #9C87F2; --k-pdf: #F07A6C; --k-ppt: #F2A054; --k-video: #6AAEE8;
+    --k-image: #5CC49A; --k-doc: #7AA8E8; --k-other: #9AA6A3;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.55; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+svg.i { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+[dir="rtl"] .flip-rtl { transform: scaleX(-1); }
+:focus-visible { outline: 3px solid var(--brand-line); outline-offset: 2px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 8px 18px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 14.5px; white-space: nowrap; }
+.btn:hover { border-color: var(--brand-line); background: var(--surface-2); }
+.btn.primary { background: var(--brand); color: var(--brand-ink); border-color: transparent; }
+.btn.primary:hover { filter: brightness(1.07); }
+.btn.big { min-height: 52px; padding-inline: 26px; font-size: 16px; }
+.btn .i { width: 18px; height: 18px; }
+.icon-btn { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 0; background: transparent; color: var(--ink-2); }
+.icon-btn:hover { background: var(--brand-soft); color: var(--brand-text); }
+
+/* Start screen */
+.gate { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: radial-gradient(1200px 500px at 50% -10%, var(--brand-soft), transparent 70%), var(--bg); }
+.gate-card { width: min(460px, 100%); background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); padding: 30px 26px 24px; text-align: center; }
+.mark { width: 68px; height: 68px; margin: 0 auto 16px; border-radius: 20px; display: grid; place-items: center; background: var(--brand); color: var(--brand-ink); }
+.mark .i { width: 36px; height: 36px; stroke-width: 1.8; }
+.gate-card h1 { margin: 0; font-size: 22px; }
+.gate-card .sub { margin: 6px 0 22px; color: var(--ink-2); font-size: 15px; }
+.gate-card .btn { width: 100%; margin-top: 10px; }
+.gate-card .note { margin: 16px 0 0; font-size: 13.5px; color: var(--ink-3); }
+.gate-card .error { margin: 14px 0 0; color: var(--danger); font-size: 14px; font-weight: 500; }
+.gate-foot { display: flex; justify-content: center; margin-top: 14px; }
+.spinner { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--brand); animation: spin .8s linear infinite; margin: 0 auto 14px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Header */
+.hero { background: var(--brand); color: var(--brand-ink); padding: calc(14px + env(safe-area-inset-top)) 0 20px; position: relative; overflow: hidden; }
+.hero::after { content: ""; position: absolute; inset: auto -60px -120px auto; width: 320px; height: 320px; border-radius: 50%; background: rgba(255,255,255,.07); pointer-events: none; }
+[dir="rtl"] .hero::after { inset: auto auto -120px -60px; }
+.wrap { max-width: 1000px; margin: 0 auto; padding-inline: 16px; }
+.hero-top { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
+.hero .mark { width: 48px; height: 48px; margin: 0; border-radius: 13px; background: rgba(255,255,255,.16); }
+.hero .mark .i { width: 26px; height: 26px; }
+.brand-text { flex: 1; min-width: 0; }
+.brand-text h1 { margin: 0; font-size: 22px; line-height: 1.3; font-weight: 700; }
+.brand-text p { margin: 2px 0 0; font-size: 13.5px; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hero .icon-btn { color: var(--brand-ink); }
+.hero .icon-btn:hover { background: rgba(255,255,255,.16); color: var(--brand-ink); }
+.hero .lang { width: auto; padding-inline: 12px; border-radius: 999px; font-weight: 700; font-size: 14px; }
+.search { position: relative; margin-top: 16px; z-index: 1; }
+.search input { width: 100%; height: 48px; border-radius: 14px; border: 0; padding-inline: 46px 16px; background: var(--surface); color: var(--ink); box-shadow: 0 2px 10px rgba(0,0,0,.1); font-size: 15.5px; }
+.search input::placeholder { color: var(--ink-3); }
+.search .i { position: absolute; inset-inline-start: 15px; top: 14px; color: var(--ink-3); }
+
+/* Tabs, filters, sort */
+.bar { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--line-2); }
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding: 10px 0 8px; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); font-weight: 600; font-size: 14px; }
+.tab .count { font-size: 12px; color: var(--ink-3); }
+.tab[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.tab[aria-selected="true"] .count { color: inherit; opacity: .7; }
+.tools { display: flex; align-items: center; gap: 8px; padding: 0 0 10px; flex-wrap: wrap; }
+.types { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+.types::-webkit-scrollbar { display: none; }
+.chip { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 999px; border: 1px solid transparent; background: transparent; color: var(--ink-2); font-size: 13px; font-weight: 600; }
+.chip .sw { width: 8px; height: 8px; border-radius: 50%; background: var(--kc, currentColor); }
+.chip[aria-pressed="true"] { background: var(--surface); border-color: var(--line); color: var(--ink); box-shadow: var(--shadow); }
+.sorts { display: flex; align-items: center; gap: 6px; margin-inline-start: auto; }
+.select { position: relative; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding-inline: 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.select select { appearance: none; -webkit-appearance: none; border: 0; background: transparent; font-weight: 600; font-size: 13px; color: var(--ink); padding-inline-end: 4px; cursor: pointer; }
+.select .i { width: 16px; height: 16px; }
+.seg { display: inline-flex; padding: 2px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+.seg button { border: 0; background: transparent; width: 32px; height: 28px; border-radius: 999px; display: grid; place-items: center; color: var(--ink-3); }
+.seg button .i { width: 17px; height: 17px; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+/* Content */
+main.wrap { padding-top: 18px; padding-bottom: 60px; }
+.section { margin-bottom: 28px; }
+.section-head { display: flex; align-items: baseline; gap: 10px; margin: 0 2px 10px; flex-wrap: wrap; }
+.section-head h2 { margin: 0; font-size: 19px; line-height: 1.3; }
+.section-head .meta { color: var(--ink-3); font-size: 13px; }
+.group-title { display: flex; align-items: center; gap: 8px; margin: 16px 4px 8px; font-size: 13.5px; font-weight: 700; color: var(--ink-2); }
+.group-title .i { width: 16px; height: 16px; color: var(--ink-3); }
+.list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.file { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 0; border-top: 1px solid var(--line-2); background: transparent; text-align: start; }
+.file:first-child { border-top: 0; }
+.file:hover { background: var(--surface-2); }
+.ftile { width: 44px; height: 44px; border-radius: 12px; flex: none; display: grid; place-items: center; color: var(--kc); background: var(--brand-soft); background: color-mix(in srgb, var(--kc) 13%, transparent); }
+.ftile .i { width: 22px; height: 22px; }
+.k-audio { --kc: var(--k-audio); } .k-pdf { --kc: var(--k-pdf); } .k-ppt { --kc: var(--k-ppt); } .k-video { --kc: var(--k-video); }
+.k-image { --kc: var(--k-image); } .k-doc { --kc: var(--k-doc); } .k-other { --kc: var(--k-other); }
+.finfo { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.fname { font-weight: 600; font-size: 15.5px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.fmeta { font-size: 12.5px; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 0 6px; }
+.fmeta .sep { opacity: .6; }
+.fmeta .path { color: var(--ink-2); }
+.chev { color: var(--ink-3); width: 18px; height: 18px; }
+.empty { text-align: center; padding: 48px 20px; color: var(--ink-2); }
+.empty .art { width: 64px; height: 64px; margin: 0 auto 12px; border-radius: 18px; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand-text); }
+.empty .art .i { width: 30px; height: 30px; }
+.foot { margin-top: 26px; color: var(--ink-3); font-size: 13px; text-align: center; }
+
+/* Viewer */
+.viewer { position: fixed; inset: 0; z-index: 60; background: var(--bg); display: flex; flex-direction: column; animation: v-in .16s ease-out; }
+@keyframes v-in { from { opacity: 0; transform: translateY(10px); } }
+.vbar { display: flex; align-items: center; gap: 8px; padding: calc(8px + env(safe-area-inset-top)) 8px 8px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.vtitle { flex: 1; min-width: 0; }
+.vtitle b { display: block; font-size: 15.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vtitle small { display: block; color: var(--ink-3); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vbody { flex: 1; overflow: auto; position: relative; }
+.vcenter { min-height: 100%; display: grid; place-items: center; padding: 24px 16px; }
+.pdf-frame { width: 100%; height: 100%; border: 0; display: block; background: #525659; }
+.audio-view { width: min(520px, 100%); text-align: center; }
+.audio-art { width: 132px; height: 132px; border-radius: 34px; margin: 0 auto 20px; display: grid; place-items: center; color: #fff; background: var(--k-audio); background: linear-gradient(145deg, var(--k-audio), color-mix(in srgb, var(--k-audio) 60%, #000)); box-shadow: var(--shadow-lg); }
+.audio-art .i { width: 58px; height: 58px; stroke-width: 1.6; }
+.audio-view h2 { margin: 0; font-size: 20px; line-height: 1.4; }
+.audio-view .where { color: var(--ink-3); margin: 4px 0 22px; font-size: 14px; }
+.audio-view audio, .media-video { width: 100%; }
+.media-video { max-height: 78vh; background: #000; border-radius: 12px; }
+.speed { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; flex-wrap: wrap; font-size: 13.5px; color: var(--ink-2); }
+.speed button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 11px; font-size: 13px; font-weight: 600; direction: ltr; }
+.speed button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.app-file { text-align: center; width: min(480px, 100%); }
+.app-file .ftile { width: 96px; height: 96px; border-radius: 26px; margin: 0 auto 18px; }
+.app-file .ftile .i { width: 44px; height: 44px; }
+.app-file h2 { margin: 0 0 8px; font-size: 19px; }
+.app-file p { color: var(--ink-2); margin: 0 0 12px; }
+.app-file .where { display: inline-block; unicode-bidi: plaintext; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; font-size: 13.5px; margin-bottom: 20px; color: var(--ink); word-break: break-all; }
+.image-view { max-width: 100%; max-height: calc(100vh - 120px); border-radius: 8px; box-shadow: var(--shadow); }
+.text-view { width: min(860px, 100%); margin: 0; white-space: pre-wrap; unicode-bidi: plaintext; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; font-size: 15px; }
+
+.toasts { position: fixed; inset-inline: 0; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 80; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; padding: 0 12px; }
+.pop-backdrop { position: fixed; inset: 0; z-index: 70; background: rgba(0,0,0,.2); }
+.pop { position: fixed; z-index: 71; top: calc(70px + env(safe-area-inset-top)); inset-inline-end: 12px; width: min(380px, calc(100vw - 24px)); background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-lg); padding: 14px; max-height: calc(100vh - 90px); overflow: auto; }
+.pop h3 { margin: 2px 4px 10px; font-size: 15px; }
+.opt { width: 100%; display: flex; gap: 12px; align-items: flex-start; text-align: start; padding: 11px 12px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface); margin-bottom: 8px; }
+.opt:hover { border-color: var(--brand-line); }
+.opt[aria-checked="true"] { border-color: var(--brand); background: var(--brand-soft); }
+.opt .dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--ink-3); flex: none; margin-top: 3px; display: grid; place-items: center; }
+.opt[aria-checked="true"] .dot { border-color: var(--brand); }
+.opt[aria-checked="true"] .dot::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--brand); }
+.opt .box { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--ink-3); flex: none; margin-top: 3px; display: grid; place-items: center; color: #fff; }
+.opt[aria-checked="true"] .box { border-color: var(--brand); background: var(--brand); }
+.opt .box .i { width: 13px; height: 13px; stroke-width: 3; }
+.opt b { display: block; font-size: 14.5px; }
+.opt small { display: block; color: var(--ink-2); font-size: 12.5px; line-height: 1.5; margin-top: 2px; }
+.pop .sep-line { height: 1px; background: var(--line-2); margin: 10px 0; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 95; background: rgba(0,0,0,.35); display: grid; place-items: center; padding: 16px; }
+.modal { width: min(380px, 100%); background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow-lg); padding: 22px 20px 18px; text-align: center; animation: v-in .16s ease-out; }
+.modal .mark { width: 54px; height: 54px; border-radius: 16px; margin-bottom: 12px; }
+.modal .mark .i { width: 26px; height: 26px; }
+.modal h2 { margin: 0 0 4px; font-size: 18px; }
+.modal p { margin: 0 0 14px; color: var(--ink-2); font-size: 14px; }
+.modal label { display: block; text-align: start; font-size: 13.5px; font-weight: 600; margin: 8px 0 4px; }
+.modal input { width: 100%; height: 46px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface-2); padding: 0 14px; font-size: 18px; letter-spacing: .25em; text-align: center; direction: ltr; }
+.modal input:focus { border-color: var(--brand); outline: none; box-shadow: 0 0 0 4px var(--brand-soft); }
+.modal .error { color: var(--danger); font-size: 13.5px; font-weight: 500; margin: 10px 0 0; min-height: 1em; }
+.modal .row { display: flex; gap: 8px; margin-top: 14px; }
+.modal .row .btn { flex: 1; }
+.pop .lock-row { display: flex; align-items: center; gap: 10px; padding: 4px 4px 2px; }
+.pop .lock-row .txt { flex: 1; min-width: 0; }
+.pop .lock-row b { display: block; font-size: 14.5px; }
+.pop .lock-row small { display: block; color: var(--ink-2); font-size: 12.5px; line-height: 1.5; }
+.pop .lock-row .i.state { width: 22px; height: 22px; color: var(--ink-3); }
+.pop .lock-row.on .i.state { color: var(--brand-text); }
+.tip { position: fixed; inset-inline: 0; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 90; display: flex; justify-content: center; padding: 0 12px; pointer-events: none; }
+.tip-card { pointer-events: auto; width: min(560px, 100%); display: flex; gap: 14px; align-items: flex-start; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-lg); padding: 16px 18px; animation: v-in .2s ease-out; }
+.tip-card .ftile { width: 42px; height: 42px; }
+.tip-card b { display: block; font-size: 15.5px; margin-bottom: 4px; }
+.tip-card p { margin: 0 0 8px; font-size: 14px; color: var(--ink-2); }
+.tip-card p.small { font-size: 13px; color: var(--ink-3); }
+.tip-card .btn { margin-top: 4px; }
+.btn.small { min-height: 34px; padding: 6px 14px; font-size: 13.5px; }
+.vbar .btn.small { flex: none; }
+.fmeta .twin { color: var(--brand-text); font-weight: 600; }
+.toast { pointer-events: auto; max-width: 520px; background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px; box-shadow: var(--shadow-lg); font-size: 14px; font-weight: 500; animation: v-in .2s ease-out; }
+
+@media (max-width: 560px) {
+  .brand-text h1 { font-size: 19px; }
+  .sorts { margin-inline-start: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<input type="file" id="picker" webkitdirectory directory multiple hidden>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="tip" id="tip"></div>
+<noscript><p style="padding:24px;text-align:center">يحتاج هذا الملف إلى تفعيل JavaScript · This page needs JavaScript.</p></noscript>
+<script>
+/* =================================================================
+ * SETTINGS — you can change these (open this file with Notepad)
+ * ================================================================= */
+const SETTINGS = {
+  title: '',            // site title. Leave empty to use the folder's name.
+  subtitle: '',         // short line under the title (optional)
+  color: '#0F6E64',     // main color, as a hex code
+  language: 'ar',       // 'ar' (Arabic) or 'en' (English)
+};
+
+(function () {
+  'use strict';
+
+  /* ---------- Text ---------- */
+  const arPlural = window.Intl && Intl.PluralRules ? new Intl.PluralRules('ar') : null;
+  const arCount = (n, f) => (f[arPlural ? arPlural.select(n) : (n === 1 ? 'one' : 'other')] || f.other).replace('{n}', n);
+  const STR = {
+    ar: {
+      appName: 'مكتبة الملفات',
+      chooseTitle: 'مكتبة الملفات',
+      chooseBody: 'اختر المجلد الذي فيه ملفات المدرسة. كل مجلد فرعي بداخله يصبح قسمًا.',
+      chooseBtn: 'اختيار المجلد',
+      openRemembered: (n) => 'فتح «' + n + '»',
+      chooseOther: 'اختيار مجلد آخر',
+      rememberNote: 'سيتذكّر المتصفح هذا المجلد، فيكفي في المرة القادمة الضغط على «فتح». لا يُرفع أي ملف إلى الإنترنت.',
+      noRememberNote: 'هذا المتصفح لا يتذكّر المجلدات، لذلك ستختار المجلد في كل مرة. في Chrome أو Edge يتذكّره تلقائيًا.',
+      appNote: 'اختر مجلد ملفات المدرسة على الهاتف. سيتذكّره التطبيق، وكل ملف يُفتح مباشرة في تطبيقه (مثل WPS Office).',
+      noAppFor: (k) => 'لا يوجد على الهاتف تطبيق يفتح هذا النوع من الملفات (' + k + '). ثبّت تطبيقًا مثل WPS Office.',
+      openFailed: 'تعذّر فتح الملف. حدّث القائمة وحاول مرة أخرى.',
+      pickHint: 'اختر المجلد نفسه (مثل «ملفات المدرسة») وليس سطح المكتب كله.',
+      scanning: 'جارٍ قراءة الملفات…',
+      found: (n) => 'تم العثور على ' + n,
+      permissionDenied: 'لم يُسمح بقراءة المجلد. اضغط الزر مرة أخرى واختر «السماح».',
+      folderGone: 'لم يعد المجلد موجودًا في مكانه. اختر المجلد من جديد.',
+      pickFailed: 'تعذّر فتح هذا المجلد. جرّب اختيار مجلد آخر داخل مجلداتك.',
+      search: 'ابحث في الملفات',
+      all: 'الكل', general: 'عام', allTypes: 'كل الأنواع',
+      k_audio: 'صوت', k_pdf: 'PDF', k_ppt: 'عرض تقديمي', k_video: 'فيديو', k_image: 'صورة', k_doc: 'مستند', k_other: 'ملف',
+      kp_audio: 'صوتيات', kp_pdf: 'PDF', kp_ppt: 'عروض', kp_video: 'فيديو', kp_image: 'صور', kp_doc: 'مستندات', kp_other: 'أخرى',
+      files: (n) => arCount(n, { zero: 'لا ملفات', one: 'ملف واحد', two: 'ملفان', few: '{n} ملفات', many: '{n} ملفًا', other: '{n} ملف' }),
+      sortBy: 'الترتيب',
+      sort_name: 'الاسم', sort_new: 'الأحدث', sort_old: 'الأقدم', sort_big: 'الأكبر حجمًا', sort_type: 'النوع',
+      viewFolders: 'حسب المجلدات', viewFlat: 'قائمة واحدة',
+      refresh: 'تحديث القائمة', changeFolder: 'تغيير المجلد', otherLang: 'EN', otherLangName: 'English',
+      noResults: 'لا توجد ملفات مطابقة.',
+      emptyFolder: 'لا توجد ملفات في هذا المجلد بعد.',
+      updated: 'تم تحديث القائمة',
+      lastScan: (s) => 'آخر قراءة للمجلد ' + s,
+      back: 'رجوع', newTab: 'فتح في تبويب جديد', saveCopy: 'تنزيل نسخة',
+      officeNote: (k) => 'لا يستطيع المتصفح عرض ملفات ' + k + ' داخل الصفحة. اضغط «فتح في تطبيق» لتنزيل نسخة تفتحها في البرنامج، أو افتح الملف مباشرة من المجلد:',
+      otherNote: 'هذا النوع من الملفات يُفتح في تطبيق على الجهاز. اضغط «فتح في تطبيق» أو افتحه من المجلد:',
+      openInApp: 'فتح في تطبيق',
+      openIn: (a) => 'فتح في ' + a,
+      theApp: 'التطبيق',
+      opening: (n) => 'جارٍ فتح «' + n + '»…',
+      viewableHere: 'يُعرض داخل الصفحة',
+      tipTitle: (a) => 'ليفتح ' + a + ' تلقائيًا بضغطة واحدة',
+      tipBody: 'المتصفح وضع نسخة من الملف في التنزيلات. لمرة واحدة فقط: اضغط أيقونة التنزيلات ⬇ أعلى المتصفح، ثم انقر بالزر الأيمن على الملف واختر «فتح الملفات من هذا النوع دائمًا» {EN}. بعدها يفتح الملف مباشرة كلما ضغطت عليه.',
+      tipTwin: 'ولعرض الشرائح داخل هذه الصفحة: احفظ نسخة PDF بنفس الاسم بجانب العرض (في PowerPoint: ملف ← حفظ باسم ← PDF).',
+      tipCopy: 'ملاحظة: ما يُفتح نسخة، فالتعديلات عليها لا تُحفظ في المجلد الأصلي.',
+      gotIt: 'فهمت',
+      settings: 'الإعدادات',
+      lockTitle: 'قفل تغيير المجلد',
+      lockOffSub: 'غير مفعّل: أي شخص يستطيع تغيير المجلد على هذا الجهاز.',
+      lockOnSub: 'مفعّل: تغيير المجلد يحتاج إلى الرمز على هذا الجهاز.',
+      lockSet: 'تفعيل القفل',
+      lockRemove: 'إلغاء القفل',
+      pinSetTitle: 'ضبط رمز القفل',
+      pinSetSub: 'سيُطلب هذا الرمز قبل تغيير المجلد على هذا الجهاز. فتح المكتبة والملفات يبقى متاحًا للجميع.',
+      pinCheckTitle: 'تغيير المجلد محمي',
+      pinCheckSub: 'أدخل رمز القفل للمتابعة.',
+      pinRemoveSub: 'أدخل رمز القفل لإلغائه.',
+      pinNew: 'الرمز (4 خانات على الأقل)',
+      pinAgain: 'أعد كتابة الرمز',
+      pinLabel: 'الرمز',
+      pinShort: 'الرمز قصير: استخدم 4 خانات على الأقل.',
+      pinMismatch: 'الرمزان غير متطابقين.',
+      pinWrong: 'الرمز غير صحيح.',
+      pinWait: (n) => 'محاولات كثيرة. انتظر ' + n + ' ثانية ثم حاول مرة أخرى.',
+      ok: 'موافق', cancel: 'إلغاء',
+      lockedToast: 'تم قفل تغيير المجلد على هذا الجهاز',
+      unlockedToast: 'تم إلغاء قفل تغيير المجلد',
+      changeFolderLocked: 'تغيير المجلد (محمي برمز)',
+      whenClick: 'عند الضغط على ملف:',
+      modeApps: 'افتحه ببرنامج الجهاز',
+      modeAppsSub: 'PowerPoint، مشغّل الصوت، قارئ PDF… حسب البرامج الموجودة على الجهاز.',
+      modePage: 'اعرضه داخل هذه الصفحة',
+      modePageSub: 'ملفات PDF والصوت والفيديو والصور تُعرض هنا مباشرة.',
+      helperLabel: 'أداة الفتح مثبّتة على هذا الكمبيوتر',
+      helperSub: 'تفتح الملف الأصلي مباشرة بدون تنزيل نسخة. شغّل «install-open-helper.cmd» من مجلد الملفات مرة واحدة، ثم فعّل هذا الخيار.',
+      openingApp: (n) => 'جارٍ فتح «' + n + '» ببرنامج الجهاز…',
+      tipHelperTitle: 'أول مرة فقط',
+      tipHelperBody: 'قد يسألك المتصفح: «فتح Windows PowerShell؟». اضغط «فتح»، وفعّل «السماح دائمًا» إن ظهر. هذه أداة الفتح التي ثبّتّها، وهي تفتح ملفات المكتبة فقط.',
+      tipHelperHint: 'لفتح الملف الأصلي مباشرة بدون تنزيل نسخة: شغّل «install-open-helper.cmd» من مجلد الملفات مرة واحدة، ثم فعّله من زر الإعدادات.',
+      tipAndroidTitle: 'فتح الملف في تطبيق الهاتف',
+      tipAndroidBody: 'يضع المتصفح نسخة من الملف في التنزيلات. اضغط «فتح» في الرسالة التي تظهر أسفل الشاشة، فيفتح الملف في التطبيق المناسب على الهاتف.',
+      speed: 'السرعة',
+      cantPlay: 'لا يستطيع هذا المتصفح تشغيل هذا الملف. نزّل نسخة وافتحها في تطبيق.',
+      fileGone: 'لم يعد هذا الملف موجودًا في المجلد. تم تحديث القائمة.',
+    },
+    en: {
+      appName: 'File Library',
+      chooseTitle: 'File Library',
+      chooseBody: 'Choose the folder that holds your school files. Each folder inside it becomes a section.',
+      chooseBtn: 'Choose folder',
+      openRemembered: (n) => 'Open “' + n + '”',
+      chooseOther: 'Choose another folder',
+      rememberNote: 'Your browser will remember this folder, so next time you just click “Open”. Nothing is uploaded to the internet.',
+      noRememberNote: 'This browser can’t remember folders, so you’ll choose it each time. Chrome or Edge remember it automatically.',
+      appNote: 'Choose the school files folder on this phone. The app remembers it, and each file opens straight in its app (like WPS Office).',
+      noAppFor: (k) => 'No app on this phone can open this kind of file (' + k + '). Install one, such as WPS Office.',
+      openFailed: 'The file couldn’t be opened. Refresh the list and try again.',
+      pickHint: 'Choose the folder itself (like “School files”), not your whole Desktop.',
+      scanning: 'Reading your files…',
+      found: (n) => n + ' found',
+      permissionDenied: 'Permission to read the folder wasn’t given. Click the button again and choose “Allow”.',
+      folderGone: 'The folder isn’t where it was. Please choose it again.',
+      pickFailed: 'That folder can’t be opened. Try a folder inside your own folders.',
+      search: 'Search files',
+      all: 'All', general: 'General', allTypes: 'All types',
+      k_audio: 'Audio', k_pdf: 'PDF', k_ppt: 'Presentation', k_video: 'Video', k_image: 'Image', k_doc: 'Document', k_other: 'File',
+      kp_audio: 'Audio', kp_pdf: 'PDF', kp_ppt: 'Presentations', kp_video: 'Video', kp_image: 'Images', kp_doc: 'Documents', kp_other: 'Other',
+      files: (n) => n + (n === 1 ? ' file' : ' files'),
+      sortBy: 'Sort',
+      sort_name: 'Name', sort_new: 'Newest', sort_old: 'Oldest', sort_big: 'Largest', sort_type: 'Type',
+      viewFolders: 'By folder', viewFlat: 'One list',
+      refresh: 'Refresh list', changeFolder: 'Change folder', otherLang: 'ع', otherLangName: 'العربية',
+      noResults: 'No matching files.',
+      emptyFolder: 'There are no files in this folder yet.',
+      updated: 'List updated',
+      lastScan: (s) => 'Folder read ' + s,
+      back: 'Back', newTab: 'Open in a new tab', saveCopy: 'Download a copy',
+      officeNote: (k) => 'Browsers can’t show ' + k + ' files inside a page. Click “Open in an app” to download a copy that opens in the program, or open the file straight from the folder:',
+      otherNote: 'This kind of file opens in an app on your computer. Click “Open in an app”, or open it from the folder:',
+      openInApp: 'Open in an app',
+      openIn: (a) => 'Open in ' + a,
+      theApp: 'the app',
+      opening: (n) => 'Opening “' + n + '”…',
+      viewableHere: 'Viewable here',
+      tipTitle: (a) => 'Make ' + a + ' open with one click',
+      tipBody: 'The browser put a copy of the file in your downloads. Just once: click the downloads icon ⬇ at the top of the browser, right-click the file and choose {EN}. From then on, the file opens straight away whenever you click it.',
+      tipTwin: 'To show the slides inside this page instead, save a PDF with the same name next to the presentation (in PowerPoint: File → Save As → PDF).',
+      tipCopy: 'Note: what opens is a copy, so changes to it aren’t saved in the original folder.',
+      gotIt: 'Got it',
+      settings: 'Settings',
+      lockTitle: 'Folder change lock',
+      lockOffSub: 'Off: anyone can change the folder on this device.',
+      lockOnSub: 'On: changing the folder needs the PIN on this device.',
+      lockSet: 'Turn on',
+      lockRemove: 'Turn off',
+      pinSetTitle: 'Set a lock PIN',
+      pinSetSub: 'This PIN will be asked before the folder can be changed on this device. Opening the library and files stays open to everyone.',
+      pinCheckTitle: 'Changing the folder is locked',
+      pinCheckSub: 'Enter the lock PIN to continue.',
+      pinRemoveSub: 'Enter the lock PIN to turn the lock off.',
+      pinNew: 'PIN (at least 4 characters)',
+      pinAgain: 'Type the PIN again',
+      pinLabel: 'PIN',
+      pinShort: 'Too short: use at least 4 characters.',
+      pinMismatch: 'The two PINs don’t match.',
+      pinWrong: 'Wrong PIN.',
+      pinWait: (n) => 'Too many tries. Wait ' + n + ' seconds, then try again.',
+      ok: 'OK', cancel: 'Cancel',
+      lockedToast: 'Changing the folder is now locked on this device',
+      unlockedToast: 'Folder change lock turned off',
+      changeFolderLocked: 'Change folder (PIN protected)',
+      whenClick: 'When I click a file:',
+      modeApps: 'Open it in the device’s app',
+      modeAppsSub: 'PowerPoint, the music player, the PDF reader… whatever is installed on the device.',
+      modePage: 'Show it inside this page',
+      modePageSub: 'PDF, audio, video and pictures show right here.',
+      helperLabel: 'The opener helper is installed on this computer',
+      helperSub: 'Opens the original file directly, with no downloaded copy. Run “install-open-helper.cmd” from the files folder once, then turn this on.',
+      openingApp: (n) => 'Opening “' + n + '” in the device’s app…',
+      tipHelperTitle: 'First time only',
+      tipHelperBody: 'Your browser may ask “Open Windows PowerShell?”. Click Open, and tick “Always allow” if you see it. That’s the opener helper you installed; it only opens library files.',
+      tipHelperHint: 'To open the original file directly, with no downloaded copy: run “install-open-helper.cmd” from the files folder once, then turn it on in the settings button.',
+      tipAndroidTitle: 'Opening in the phone’s app',
+      tipAndroidBody: 'The browser puts a copy of the file in your downloads. Tap “Open” on the message at the bottom of the screen, and it opens in the right app on your phone.',
+      speed: 'Speed',
+      cantPlay: 'This browser can’t play this file. Download a copy and open it in an app.',
+      fileGone: 'This file is no longer in the folder. The list was updated.',
+    },
+  };
+
+  /* ---------- Icons ---------- */
+  const ICONS = {
+    book: '<path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5z"/><path d="M12 6.5v13"/>',
+    folderOpen: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v1"/><path d="M3 7v10a2 2 0 0 0 2 2h12.5a2 2 0 0 0 1.9-1.4L21.8 12a1.5 1.5 0 0 0-1.4-2H7.6a2 2 0 0 0-1.9 1.4L3.2 18"/>',
+    folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+    refresh: '<path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/>',
+    back: '<path d="M15 5l-7 7 7 7"/>',
+    chev: '<path d="M9 5l7 7-7 7"/>',
+    sort: '<path d="M7 4v16"/><path d="m3 16 4 4 4-4"/><path d="M17 20V4"/><path d="m13 8 4-4 4 4"/>',
+    listIcon: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
+    tree: '<path d="M4 5h6"/><path d="M4 5v12a2 2 0 0 0 2 2h4"/><path d="M4 12h6"/><rect x="12" y="3" width="8" height="4" rx="1"/><rect x="12" y="10" width="8" height="4" rx="1"/><rect x="12" y="17" width="8" height="4" rx="1"/>',
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/>',
+    audio: '<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4.5" height="6.5" rx="1.6"/><rect x="16.5" y="14" width="4.5" height="6.5" rx="1.6"/>',
+    pdf: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/>',
+    ppt: '<rect x="3" y="4" width="18" height="12" rx="1.6"/><path d="M12 16v4M8 20h8"/><path d="M7.5 12.5l3-3 2.5 2 3.5-3.5"/>',
+    video: '<rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10.5 5-3v9l-5-3"/>',
+    image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
+    doc: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 12h6M9 15h6M9 18h3"/>',
+    other: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>',
+    newTab: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+    download: '<path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/>',
+    lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    unlock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/>',
+    sliders: '<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
+    check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  };
+  const icon = (n, cls) => '<svg class="i' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n] || '') + '</svg>';
+
+  /* ---------- Helpers ---------- */
+  // Inside the School Library Android app, the app gives the page folder access
+  // and opens files directly in the phone's apps.
+  const APP = (window.LibraryApp && typeof window.LibraryApp.listFiles === 'function') ? window.LibraryApp : null;
+  const ls = {
+    get(k, d) {
+      try { const v = APP ? APP.getItem('slib:' + k) : localStorage.getItem('slib:' + k); return v === null || v === undefined ? d : v; }
+      catch (e) { return d; }
+    },
+    set(k, v) { try { if (APP) APP.setItem('slib:' + k, String(v)); else localStorage.setItem('slib:' + k, v); } catch (e) { /* ignore */ } },
+    del(k) { try { if (APP) APP.removeItem('slib:' + k); else localStorage.removeItem('slib:' + k); } catch (e) { /* ignore */ } },
+  };
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const t = (key, ...a) => { const v = (STR[state.lang] || STR.ar)[key]; return typeof v === 'function' ? v(...a) : (v == null ? key : v); };
+  const locale = () => (state.lang === 'ar' ? 'ar-u-nu-latn' : 'en');
+  const collator = () => new Intl.Collator(state.lang === 'ar' ? 'ar' : 'en', { numeric: true, sensitivity: 'base' });
+  function fmtSize(b) {
+    if (!b) return '0 KB';
+    const u = ['B', 'KB', 'MB', 'GB']; let i = 0, v = b;
+    while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
+    return (v >= 10 || i === 0 ? Math.round(v) : v.toFixed(1)) + ' ' + u[i];
+  }
+  function fmtDate(ms) {
+    try { return new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(ms)); }
+    catch (e) { return new Date(ms).toLocaleDateString(); }
+  }
+  function fmtAgo(ms) {
+    const diff = (ms - Date.now()) / 1000;
+    try {
+      const rtf = new Intl.RelativeTimeFormat(locale(), { numeric: 'auto' });
+      for (const [u, s] of [['day', 86400], ['hour', 3600], ['minute', 60]]) if (Math.abs(diff) >= s) return rtf.format(Math.round(diff / s), u);
+      return rtf.format(0, 'minute');
+    } catch (e) { return fmtDate(ms); }
+  }
+  function cleanName(name, keepExt) {
+    let n = String(name || '');
+    if (!keepExt) n = n.replace(/\.[a-z0-9]{1,5}$/i, '');
+    n = n.replace(/^\s*\d{1,3}\s*(?:[-_)]|\.(?=\s))\s*/, '').replace(/_+/g, ' ').trim();
+    return n || String(name || '');
+  }
+  const norm = (s) => String(s || '').toLowerCase().normalize('NFKD')
+    .replace(/[̀-ًͯ-ٰٟـ]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي');
+  const extOf = (n) => { const m = String(n || '').match(/\.([a-z0-9]{1,5})$/i); return m ? m[1].toLowerCase() : ''; };
+  const KIND_EXT = {
+    audio: ['mp3', 'm4a', 'wav', 'ogg', 'oga', 'aac', 'flac', 'opus', 'weba', 'wma', 'amr'],
+    pdf: ['pdf'],
+    ppt: ['ppt', 'pptx', 'pps', 'ppsx', 'pot', 'potx', 'key', 'odp'],
+    video: ['mp4', 'webm', 'mov', 'm4v', 'mkv', 'avi', '3gp'],
+    image: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'heic'],
+    doc: ['doc', 'docx', 'odt', 'rtf', 'txt', 'xls', 'xlsx', 'csv', 'ods'],
+  };
+  const KIND_ORDER = ['audio', 'pdf', 'ppt', 'video', 'image', 'doc', 'other'];
+  function kindOf(name) {
+    const e = extOf(name);
+    for (const k of KIND_ORDER) if (KIND_EXT[k] && KIND_EXT[k].indexOf(e) > -1) return k;
+    return 'other';
+  }
+  const MIME = { pdf: 'application/pdf', mp3: 'audio/mpeg', m4a: 'audio/mp4', wav: 'audio/wav', ogg: 'audio/ogg', mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml', txt: 'text/plain' };
+  const SKIP = /^(\.|~\$|desktop\.ini$|thumbs\.db$|\$recycle\.bin$|system volume information$)/i;
+  const ownName = (() => { try { return decodeURIComponent(location.pathname.split('/').pop() || '').toLowerCase(); } catch (e) { return ''; } })();
+  const canRemember = typeof window.showDirectoryPicker === 'function';
+  const HAS_CRYPTO = !!(window.crypto && window.crypto.subtle);
+  const lockAvailable = () => (canRemember || !!APP) && HAS_CRYPTO;
+  const IS_ANDROID = /Android/i.test(navigator.userAgent);
+  const IS_WINDOWS = /Windows/i.test(navigator.userAgent);
+  const HELPER_FILES = ['open-helper.ps1', 'install-open-helper.cmd', 'uninstall-open-helper.cmd'];
+  const isHelperFile = (name) => HELPER_FILES.indexOf(String(name).toLowerCase()) > -1;
+
+  /* ---------- Remembering the folder (IndexedDB, Chrome/Edge) ---------- */
+  function idb() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('school-library-local', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+  }
+  async function idbGet(k) {
+    try { const d = await idb(); return await new Promise((res) => { const q = d.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(undefined); }); }
+    catch (e) { return undefined; }
+  }
+  async function idbSet(k, v) {
+    try { const d = await idb(); await new Promise((res) => { const x = d.transaction('kv', 'readwrite'); x.objectStore('kv').put(v, k); x.oncomplete = res; x.onerror = res; }); }
+    catch (e) { /* can't remember: fine */ }
+  }
+
+  /* ---------- State ---------- */
+  const state = {
+    lang: ls.get('lang', SETTINGS.language === 'en' ? 'en' : 'ar'),
+    view: 'start',             // start | scanning | main
+    rootName: '',
+    root: null,                // directory handle (Chrome/Edge)
+    remembered: null,          // remembered handle, not yet opened
+    files: [],
+    scannedAt: 0,
+    scanCount: 0,
+    tab: ls.get('tab', 'all'),
+    type: 'all',
+    query: '',
+    sort: ls.get('sort', 'name'),
+    layout: ls.get('layout', 'folders'),
+    openMode: APP ? 'apps' : ls.get('openMode', 'apps'),   // apps = device's own apps, page = inside this page
+    appHasFolder: false,                    // Android app: a folder has been chosen
+    helper: ls.get('helper', '') === '1',   // Windows opener helper installed on this computer
+    helperFound: false,                     // helper files are in the chosen folder
+    error: '',
+  };
+  const app = document.getElementById('app');
+  const picker = document.getElementById('picker');
+
+  function setLang(l) {
+    state.lang = l === 'en' ? 'en' : 'ar';
+    document.documentElement.lang = state.lang;
+    document.documentElement.dir = state.lang === 'ar' ? 'rtl' : 'ltr';
+  }
+  function title() { return SETTINGS.title || state.rootName || t('appName'); }
+  function applyColor() {
+    const c = /^#[0-9a-f]{6}$/i.test(SETTINGS.color || '') ? SETTINGS.color : '#0F6E64';
+    const s = document.documentElement.style;
+    s.setProperty('--brand', c);
+    const r = parseInt(c.slice(1, 3), 16), g = parseInt(c.slice(3, 5), 16), b = parseInt(c.slice(5, 7), 16);
+    s.setProperty('--brand-ink', (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.62 ? '#1B2627' : '#FFFFFF');
+    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', c);
+  }
+
+  /* ---------- Reading the folder ---------- */
+  let helperSeen = false;
+  async function scanHandle(root, onCount) {
+    const found = [];
+    helperSeen = false;
+    async function walk(dir, path, depth) {
+      for await (const [name, h] of dir.entries()) {
+        if (SKIP.test(name)) continue;
+        if (h.kind === 'directory') { if (depth < 8) await walk(h, path.concat(name), depth + 1); }
+        else if (path.length === 0 && isHelperFile(name)) helperSeen = true;
+        else if (!(path.length === 0 && name.toLowerCase() === ownName)) { found.push({ name, path, handle: h }); if (found.length % 25 === 0) onCount(found.length); }
+      }
+    }
+    await walk(root, [], 0);
+    onCount(found.length);
+    const items = [];
+    for (let i = 0; i < found.length; i += 40) {
+      const batch = await Promise.all(found.slice(i, i + 40).map(async (f) => {
+        try {
+          const file = await f.handle.getFile();
+          return makeItem(f.name, f.path, file.size, file.lastModified, () => f.handle.getFile());
+        } catch (e) { return null; }
+      }));
+      batch.forEach((x) => { if (x) items.push(x); });
+    }
+    return items;
+  }
+  function scanFileList(list) {
+    const items = [];
+    helperSeen = false;
+    Array.from(list).forEach((file) => {
+      const parts = String(file.webkitRelativePath || file.name).split('/');
+      const path = parts.slice(1, -1);
+      if (parts.some((p) => SKIP.test(p))) return;
+      if (path.length === 0 && file.name.toLowerCase() === ownName) return;
+      if (path.length === 0 && isHelperFile(file.name)) { helperSeen = true; return; }
+      items.push(makeItem(file.name, path, file.size, file.lastModified, () => Promise.resolve(file)));
+    });
+    return items;
+  }
+  const baseOf = (n) => String(n || '').replace(/\.[a-z0-9]{1,5}$/i, '').toLowerCase();
+  const inPage = (f) => (f.kind === 'pdf' && !IS_ANDROID) || ['audio', 'video'].indexOf(f.kind) > -1 || (f.kind === 'image' && extOf(f.name) !== 'heic') || ['txt', 'csv'].indexOf(extOf(f.name)) > -1;
+  // A PowerPoint/Word file with a PDF of the same name next to it is shown once, and opens as that PDF.
+  function pairTwins(items) {
+    const pdfs = new Map();
+    items.forEach((f) => { if (f.kind === 'pdf') pdfs.set(f.path.join('/') + '/' + baseOf(f.name), f); });
+    const hide = new Set();
+    items.forEach((f) => {
+      if (f.kind !== 'ppt' && f.kind !== 'doc') return;
+      if (['txt', 'csv'].indexOf(extOf(f.name)) > -1) return;
+      const tw = pdfs.get(f.path.join('/') + '/' + baseOf(f.name));
+      if (tw) { f.twin = tw; hide.add(tw); }
+    });
+    return items.filter((f) => !hide.has(f));
+  }
+  function appLabel(f) {
+    const e = extOf(f.name);
+    if (f.kind === 'ppt') return e === 'key' ? 'Keynote' : 'PowerPoint';
+    if (e === 'doc' || e === 'docx' || e === 'rtf' || e === 'odt') return 'Word';
+    if (e === 'xls' || e === 'xlsx' || e === 'ods') return 'Excel';
+    return t('theApp');
+  }
+  function makeItem(name, path, size, modified, getFile) {
+    return {
+      id: path.concat(name).join('/'),
+      name, path, size, modified, getFile,
+      section: path[0] || '',
+      group: path.slice(1).join(' / '),
+      kind: kindOf(name),
+    };
+  }
+
+  async function openHandle(handle, quiet) {
+    state.root = handle;
+    state.rootName = handle.name;
+    if (!quiet) { state.view = 'scanning'; state.scanCount = 0; render(); }
+    try {
+      const items = await scanHandle(handle, (n) => { state.scanCount = n; const el = document.getElementById('scan-count'); if (el) el.textContent = t('found', t('files', n)); });
+      state.files = pairTwins(items);
+      state.helperFound = helperSeen;
+      state.scannedAt = Date.now();
+      state.view = 'main';
+      if (quiet) { renderTabs(); renderContent(); } else render();
+      return true;
+    } catch (e) {
+      console.warn(e);
+      state.root = null;
+      state.view = 'start';
+      state.error = e && e.name === 'NotFoundError' ? t('folderGone') : t('permissionDenied');
+      render();
+      return false;
+    }
+  }
+
+  /* ---------- Android app bridge ---------- */
+  const appWaiting = new Map();
+  let appSeq = 0;
+  function appCall(method, ...args) {
+    return new Promise((resolve) => {
+      const id = 'c' + (++appSeq);
+      appWaiting.set(id, (text) => { try { resolve(JSON.parse(text)); } catch (e) { resolve({ ok: false, error: 'bad_reply' }); } });
+      try { APP[method](id, ...args); } catch (e) { appWaiting.delete(id); resolve({ ok: false, error: 'bridge' }); }
+    });
+  }
+  window.__libraryApp = {
+    resolve(id, text) { const f = appWaiting.get(id); if (f) { appWaiting.delete(id); f(text); } },
+    // Android back button: close whatever is open; false = leave the app.
+    back() {
+      const cancel = document.querySelector('.modal-backdrop [data-pin="cancel"]');
+      if (cancel) { cancel.click(); return true; }
+      if (popEl) { closeSettings(); return true; }
+      const tip = document.getElementById('tip');
+      if (tip && tip.innerHTML) { tip.innerHTML = ''; return true; }
+      if (viewer) { closeViewer(); return true; }
+      return false;
+    },
+    refresh() { autoRefresh(); },
+  };
+
+  async function openAppFolder(quiet) {
+    if (!quiet) { state.view = 'scanning'; state.scanCount = 0; render(); }
+    const r = await appCall('listFiles');
+    if (!r.ok) {
+      state.appHasFolder = false;
+      state.files = [];
+      state.view = 'start';
+      state.error = r.error === 'no_folder' ? '' : t('folderGone');
+      render();
+      return false;
+    }
+    state.appHasFolder = true;
+    state.rootName = r.name || t('appName');
+    const items = [];
+    (r.files || []).forEach((f) => {
+      const parts = String(f.p || '').split('/').filter(Boolean);
+      if (!parts.length || parts.some((p) => SKIP.test(p))) return;
+      const name = parts[parts.length - 1];
+      if (parts.length === 1 && (isHelperFile(name) || /^(school-library|index)\.html?$/i.test(name))) return;
+      items.push(makeItem(name, parts.slice(0, -1), Number(f.s) || 0, Number(f.m) || 0, null));
+    });
+    state.files = items;
+    state.scannedAt = Date.now();
+    state.view = 'main';
+    if (quiet) { renderTabs(); renderContent(); } else render();
+    return true;
+  }
+
+  async function openInPhoneApp(item) {
+    const r = await appCall('openFile', item.id);
+    if (r.ok) return;
+    if (r.error === 'no_app') toast(t('noAppFor', t('k_' + item.kind)));
+    else if (r.error === 'not_found') { toast(t('fileGone')); rescan(false); }
+    else toast(t('openFailed'));
+  }
+
+  async function chooseFolder() {
+    state.error = '';
+    if (APP) {
+      const r = await appCall('pickFolder');
+      if (r.ok) await openAppFolder();
+      else if (r.error !== 'cancelled') { state.error = t('pickFailed'); render(); }
+      return;
+    }
+    if (canRemember) {
+      let h;
+      try { h = await window.showDirectoryPicker({ id: 'school-library', mode: 'read' }); }
+      catch (e) {
+        if (e && e.name === 'AbortError') return;
+        state.error = t('pickFailed'); render(); return;
+      }
+      await idbSet('root', h);
+      state.remembered = h;
+      await openHandle(h);
+    } else {
+      picker.value = '';
+      picker.click();
+    }
+  }
+
+  picker.addEventListener('change', () => {
+    const list = picker.files;
+    if (!list || !list.length) return;
+    const first = String(list[0].webkitRelativePath || '').split('/')[0];
+    state.root = null;
+    state.rootName = first || t('appName');
+    state.files = pairTwins(scanFileList(list));
+    state.helperFound = helperSeen;
+    state.scannedAt = Date.now();
+    state.view = 'main';
+    render();
+  });
+
+  async function openRemembered() {
+    const h = state.remembered;
+    if (!h) return chooseFolder();
+    state.error = '';
+    try {
+      let p = await h.queryPermission({ mode: 'read' });
+      if (p !== 'granted') p = await h.requestPermission({ mode: 'read' });
+      if (p !== 'granted') { state.error = t('permissionDenied'); render(); return; }
+    } catch (e) { state.error = t('folderGone'); render(); return; }
+    await openHandle(h);
+  }
+
+  async function rescan(showToast) {
+    if (APP) {
+      if (!state.appHasFolder) { chooseFolder(); return; }
+      const ok = await openAppFolder(true);
+      if (ok && showToast) toast(t('updated'));
+      return;
+    }
+    if (!state.root) { chooseFolder(); return; }
+    const ok = await openHandle(state.root, true);
+    if (ok && showToast) toast(t('updated'));
+  }
+
+  /* ---------- Rendering ---------- */
+  function render() {
+    document.title = title();
+    if (state.view === 'main') renderMain();
+    else if (state.view === 'scanning') renderScanning();
+    else renderStart();
+  }
+
+  function langButton(cls) {
+    return '<button class="' + cls + '" data-action="lang" aria-label="' + esc(t('otherLangName')) + '">' + (cls === 'btn' ? icon('globe') + esc(t('otherLangName')) : esc(t('otherLang'))) + '</button>';
+  }
+
+  function renderStart() {
+    const r = state.remembered;
+    app.innerHTML = '<div class="gate"><div><div class="gate-card">' +
+      '<div class="mark">' + icon('book') + '</div>' +
+      '<h1>' + esc(SETTINGS.title || t('chooseTitle')) + '</h1>' +
+      '<p class="sub">' + esc(SETTINGS.subtitle || t('chooseBody')) + '</p>' +
+      (r ? '<button class="btn primary big" data-action="open-remembered">' + icon('folderOpen') + esc(t('openRemembered', r.name)) + '</button>' +
+           '<button class="btn" data-action="change-folder">' + icon(isLocked() ? 'lock' : 'folder') + esc(t('chooseOther')) + '</button>'
+         : '<button class="btn primary big" data-action="choose">' + icon('folderOpen') + esc(t('chooseBtn')) + '</button>') +
+      (state.error ? '<p class="error" role="alert">' + esc(state.error) + '</p>' : '') +
+      '<p class="note">' + esc(APP ? t('appNote') : canRemember ? t('rememberNote') : t('noRememberNote')) + '<br>' + esc(t('pickHint')) + '</p>' +
+      '</div><div class="gate-foot">' + langButton('btn') + '</div></div></div>';
+  }
+
+  function renderScanning() {
+    app.innerHTML = '<div class="gate"><div class="gate-card"><div class="spinner"></div><h1 style="font-size:18px">' + esc(t('scanning')) + '</h1>' +
+      '<p class="sub" id="scan-count" style="margin-bottom:0">' + esc(state.rootName) + '</p></div></div>';
+  }
+
+  function renderMain() {
+    app.innerHTML =
+      '<header class="hero"><div class="wrap">' +
+        '<div class="hero-top">' +
+          '<div class="mark">' + icon('book') + '</div>' +
+          '<div class="brand-text"><h1>' + esc(title()) + '</h1><p>' + esc(SETTINGS.subtitle || t('files', state.files.length)) + '</p></div>' +
+          '<button class="icon-btn" data-action="settings" title="' + esc(t('settings')) + '" aria-label="' + esc(t('settings')) + '" aria-haspopup="true">' + icon('sliders') + '</button>' +
+          '<button class="icon-btn" data-action="refresh" title="' + esc(t('refresh')) + '" aria-label="' + esc(t('refresh')) + '">' + icon('refresh') + '</button>' +
+          '<button class="icon-btn" data-action="change-folder" title="' + esc(isLocked() ? t('changeFolderLocked') : t('changeFolder')) + '" aria-label="' + esc(isLocked() ? t('changeFolderLocked') : t('changeFolder')) + '">' + icon(isLocked() ? 'lock' : 'folder') + '</button>' +
+          langButton('icon-btn lang') +
+        '</div>' +
+        '<div class="search">' + icon('search') + '<input id="q" type="search" autocomplete="off" placeholder="' + esc(t('search')) + '" aria-label="' + esc(t('search')) + '" value="' + esc(state.query) + '"></div>' +
+      '</div></header>' +
+      '<nav class="bar"><div class="wrap"><div class="tabs" id="tabs" role="tablist"></div>' +
+        '<div class="tools"><div class="types" id="types"></div>' +
+          '<div class="sorts">' +
+            '<label class="select">' + icon('sort') + '<span class="sr">' + esc(t('sortBy')) + ':</span><select id="sort" aria-label="' + esc(t('sortBy')) + '">' +
+              ['name', 'new', 'old', 'big', 'type'].map((s) => '<option value="' + s + '"' + (state.sort === s ? ' selected' : '') + '>' + esc(t('sort_' + s)) + '</option>').join('') +
+            '</select></label>' +
+            '<div class="seg" role="group">' +
+              '<button data-action="layout" data-layout="folders" aria-pressed="' + (state.layout === 'folders') + '" title="' + esc(t('viewFolders')) + '" aria-label="' + esc(t('viewFolders')) + '">' + icon('tree') + '</button>' +
+              '<button data-action="layout" data-layout="flat" aria-pressed="' + (state.layout === 'flat') + '" title="' + esc(t('viewFlat')) + '" aria-label="' + esc(t('viewFlat')) + '">' + icon('listIcon') + '</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div></nav>' +
+      '<main class="wrap"><div id="list"></div></main>';
+    const q = document.getElementById('q');
+    q.addEventListener('input', () => { state.query = q.value; renderContent(); });
+    document.getElementById('sort').addEventListener('change', (e) => { state.sort = e.target.value; ls.set('sort', state.sort); renderContent(); });
+    renderTabs();
+    renderContent();
+  }
+
+  function sections() {
+    const counts = new Map();
+    state.files.forEach((f) => counts.set(f.section, (counts.get(f.section) || 0) + 1));
+    const col = collator();
+    const list = Array.from(counts.keys()).filter((s) => s).sort((a, b) => col.compare(a, b)).map((s) => ({ id: s, name: cleanName(s, true), count: counts.get(s) }));
+    if (counts.has('')) list.unshift({ id: '', name: t('general'), count: counts.get('') });
+    return list;
+  }
+  const secName = (id) => (id ? cleanName(id, true) : t('general'));
+  const groupName = (g) => g.split(' / ').map((p) => cleanName(p, true)).join(' / ');
+
+  function renderTabs() {
+    const el = document.getElementById('tabs');
+    if (!el) return;
+    const secs = sections();
+    const tabKey = (id) => 's:' + id;
+    if (state.tab !== 'all' && !secs.some((s) => tabKey(s.id) === state.tab)) state.tab = 'all';
+    const tab = (key, label, count) => '<button class="tab" role="tab" data-action="tab" data-tab="' + esc(key) + '" aria-selected="' + (state.tab === key) + '"><span>' + esc(label) + '</span><span class="count">' + count + '</span></button>';
+    if (secs.length <= 1) { state.tab = 'all'; el.innerHTML = ''; }
+    else el.innerHTML = tab('all', t('all'), state.files.length) + secs.map((s) => tab(tabKey(s.id), s.name, s.count)).join('');
+
+    const pool = state.files.filter(inTab);
+    const kinds = KIND_ORDER.filter((k) => pool.some((f) => f.kind === k));
+    if (state.type !== 'all' && kinds.indexOf(state.type) === -1) state.type = 'all';
+    const types = document.getElementById('types');
+    types.innerHTML = kinds.length > 1
+      ? '<button class="chip" data-action="type" data-type="all" aria-pressed="' + (state.type === 'all') + '">' + esc(t('allTypes')) + '</button>' +
+        kinds.map((k) => '<button class="chip k-' + k + '" data-action="type" data-type="' + k + '" aria-pressed="' + (state.type === k) + '"><span class="sw"></span>' + esc(t('kp_' + k)) + '</button>').join('')
+      : '';
+  }
+
+  function inTab(f) { return state.tab === 'all' || state.tab === 's:' + f.section; }
+
+  function filtered() {
+    const q = norm(state.query.trim());
+    return state.files.filter((f) => {
+      if (!inTab(f)) return false;
+      if (state.type !== 'all' && f.kind !== state.type) return false;
+      if (q && norm(cleanName(f.name) + ' ' + f.name + ' ' + f.path.join(' ')).indexOf(q) === -1) return false;
+      return true;
+    });
+  }
+
+  function sorter() {
+    const col = collator();
+    const byName = (a, b) => col.compare(a.name, b.name);
+    switch (state.sort) {
+      case 'new': return (a, b) => b.modified - a.modified || byName(a, b);
+      case 'old': return (a, b) => a.modified - b.modified || byName(a, b);
+      case 'big': return (a, b) => b.size - a.size || byName(a, b);
+      case 'type': return (a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || byName(a, b);
+      default: return byName;
+    }
+  }
+
+  function rowHtml(f, showPath) {
+    const where = [f.section ? secName(f.section) : t('general')].concat(f.group ? [groupName(f.group)] : []).join(' / ');
+    return '<button class="file" data-action="open" data-id="' + esc(f.id) + '">' +
+      '<span class="ftile k-' + f.kind + '">' + icon(f.kind) + '</span>' +
+      '<span class="finfo"><span class="fname">' + esc(cleanName(f.name)) + '</span>' +
+        '<span class="fmeta">' + (showPath ? '<span class="path">' + esc(where) + '</span><span class="sep">·</span>' : '') +
+        '<span>' + esc(t('k_' + f.kind)) + (f.kind === 'other' && extOf(f.name) ? ' (' + esc(extOf(f.name).toUpperCase()) + ')' : '') + '</span>' +
+        '<span class="sep">·</span><bdi>' + fmtSize(f.size) + '</bdi><span class="sep">·</span><span>' + esc(fmtDate(f.modified)) + '</span>' +
+        (f.twin ? '<span class="sep">·</span><span class="twin">' + esc(t('viewableHere')) + '</span>' : '') + '</span></span>' +
+      (state.openMode === 'page' && (inPage(f) || f.twin) ? icon('chev', 'chev flip-rtl') : '<span title="' + esc(t('openIn', appLabel(f))) + '">' + icon('newTab', 'chev') + '</span>') +
+    '</button>';
+  }
+
+  function renderContent() {
+    const el = document.getElementById('list');
+    if (!el) return;
+    const foot = '<div class="foot">' + esc(state.rootName) + ' · ' + esc(t('files', state.files.length)) + (state.root ? ' · ' + esc(t('lastScan', fmtAgo(state.scannedAt))) : '') + '</div>';
+    if (!state.files.length) { el.innerHTML = empty('folder', t('emptyFolder')) + foot; return; }
+    const list = filtered();
+    if (!list.length) { el.innerHTML = empty('search', t('noResults')) + foot; return; }
+    const sort = sorter();
+    if (state.layout === 'flat') {
+      el.innerHTML = '<div class="list">' + list.slice().sort(sort).map((f) => rowHtml(f, true)).join('') + '</div>' + foot;
+      return;
+    }
+    const col = collator();
+    const secOrder = sections().map((s) => s.id);
+    const bySec = new Map();
+    list.forEach((f) => { if (!bySec.has(f.section)) bySec.set(f.section, []); bySec.get(f.section).push(f); });
+    let html = '';
+    Array.from(bySec.keys()).sort((a, b) => secOrder.indexOf(a) - secOrder.indexOf(b)).forEach((sid) => {
+      const items = bySec.get(sid);
+      const size = items.reduce((a, f) => a + f.size, 0);
+      html += '<section class="section"><div class="section-head"><h2>' + esc(secName(sid)) + '</h2><span class="meta">' + esc(t('files', items.length)) + ' · <bdi>' + fmtSize(size) + '</bdi></span></div>';
+      const groups = new Map();
+      items.forEach((f) => { if (!groups.has(f.group)) groups.set(f.group, []); groups.get(f.group).push(f); });
+      Array.from(groups.keys()).sort((a, b) => (a === '' ? -1 : b === '' ? 1 : col.compare(a, b))).forEach((g) => {
+        if (g) html += '<div class="group-title">' + icon('folder') + '<span>' + esc(groupName(g)) + '</span></div>';
+        html += '<div class="list">' + groups.get(g).sort(sort).map((f) => rowHtml(f, false)).join('') + '</div>';
+      });
+      html += '</section>';
+    });
+    el.innerHTML = html + foot;
+  }
+  const empty = (ic, text) => '<div class="empty"><div class="art">' + icon(ic) + '</div><p>' + esc(text) + '</p></div>';
+
+  function toast(text) {
+    const box = document.getElementById('toasts');
+    const el = document.createElement('div');
+    el.className = 'toast'; el.textContent = text;
+    box.appendChild(el);
+    while (box.children.length > 2) box.removeChild(box.firstChild);
+    setTimeout(() => el.remove(), 3500);
+  }
+
+  /* ---------- Folder change lock ---------- */
+  const lockData = () => { try { return JSON.parse(ls.get('lock', '') || 'null'); } catch (e) { return null; } };
+  const isLocked = () => lockAvailable() && !!lockData();
+  async function hashPin(pin, salt) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(salt + ':' + pin));
+    return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+  let pinFails = 0, pinBlockedUntil = 0;
+
+  // mode: 'set' (choose a new PIN) or 'check' (verify). Resolves true when done.
+  function pinDialog(mode, sub) {
+    return new Promise((resolve) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'modal-backdrop';
+      const setting = mode === 'set';
+      wrap.innerHTML = '<form class="modal" role="dialog" aria-modal="true" autocomplete="off">' +
+        '<div class="mark">' + icon('lock') + '</div>' +
+        '<h2>' + esc(setting ? t('pinSetTitle') : t('pinCheckTitle')) + '</h2>' +
+        '<p>' + esc(sub || (setting ? t('pinSetSub') : t('pinCheckSub'))) + '</p>' +
+        '<label for="pin1">' + esc(setting ? t('pinNew') : t('pinLabel')) + '</label>' +
+        '<input id="pin1" type="password" inputmode="numeric" maxlength="32" autocomplete="off">' +
+        (setting ? '<label for="pin2">' + esc(t('pinAgain')) + '</label><input id="pin2" type="password" inputmode="numeric" maxlength="32" autocomplete="off">' : '') +
+        '<p class="error" role="alert"></p>' +
+        '<div class="row"><button type="button" class="btn" data-pin="cancel">' + esc(t('cancel')) + '</button><button type="submit" class="btn primary">' + esc(t('ok')) + '</button></div>' +
+        '</form>';
+      document.body.appendChild(wrap);
+      const form = wrap.querySelector('form');
+      const err = wrap.querySelector('.error');
+      const p1 = wrap.querySelector('#pin1');
+      setTimeout(() => p1.focus(), 30);
+      const done = (v) => { wrap.remove(); resolve(v); };
+      wrap.addEventListener('click', (e) => { if (e.target === wrap || e.target.closest('[data-pin="cancel"]')) done(false); });
+      wrap.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); done(false); } });
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pin = p1.value.trim();
+        if (setting) {
+          if (pin.length < 4) { err.textContent = t('pinShort'); return; }
+          if (pin !== wrap.querySelector('#pin2').value.trim()) { err.textContent = t('pinMismatch'); return; }
+          const salt = Array.from(crypto.getRandomValues(new Uint8Array(12))).map((b) => b.toString(16).padStart(2, '0')).join('');
+          ls.set('lock', JSON.stringify({ salt: salt, hash: await hashPin(pin, salt) }));
+          return done(true);
+        }
+        const wait = Math.ceil((pinBlockedUntil - Date.now()) / 1000);
+        if (wait > 0) { err.textContent = t('pinWait', wait); return; }
+        const d = lockData();
+        if (!d || (await hashPin(pin, d.salt)) === d.hash) { pinFails = 0; return done(true); }
+        pinFails++;
+        p1.value = '';
+        if (pinFails >= 5) { pinBlockedUntil = Date.now() + 30000; pinFails = 0; err.textContent = t('pinWait', 30); }
+        else err.textContent = t('pinWrong');
+      });
+    });
+  }
+
+  async function changeFolder() {
+    closeSettings();
+    if (isLocked() && !(await pinDialog('check'))) return;
+    chooseFolder();
+  }
+
+  /* ---------- Settings ---------- */
+  let popEl = null;
+  function closeSettings() { if (popEl) { popEl.remove(); popEl = null; } }
+  function openSettings() {
+    closeSettings();
+    popEl = document.createElement('div');
+    const opt = (action, value, checked, title, sub, box) =>
+      '<button class="opt" role="' + (box ? 'menuitemcheckbox' : 'menuitemradio') + '" data-action="' + action + '"' + (value ? ' data-mode="' + value + '"' : '') + ' aria-checked="' + checked + '">' +
+      (box ? '<span class="box">' + icon('check') + '</span>' : '<span class="dot"></span>') + '<span><b>' + esc(title) + '</b><small>' + esc(sub) + '</small></span></button>';
+    popEl.innerHTML = '<div class="pop-backdrop" data-action="close-settings"></div><div class="pop" role="menu">' +
+      (APP ? '' : '<h3>' + esc(t('whenClick')) + '</h3>' +
+        opt('set-mode', 'apps', state.openMode === 'apps', t('modeApps'), t('modeAppsSub')) +
+        opt('set-mode', 'page', state.openMode === 'page', t('modePage'), t('modePageSub')) +
+        (IS_WINDOWS && state.helperFound ? '<div class="sep-line"></div>' + opt('toggle-helper', '', state.helper, t('helperLabel'), t('helperSub'), true) : '')) +
+      (lockAvailable() ? (APP ? '' : '<div class="sep-line"></div>') + '<div class="lock-row' + (isLocked() ? ' on' : '') + '">' + icon(isLocked() ? 'lock' : 'unlock', 'state') +
+        '<div class="txt"><b>' + esc(t('lockTitle')) + '</b><small>' + esc(isLocked() ? t('lockOnSub') : t('lockOffSub')) + '</small></div>' +
+        '<button class="btn small' + (isLocked() ? '' : ' primary') + '" data-action="' + (isLocked() ? 'lock-off' : 'lock-on') + '">' + esc(isLocked() ? t('lockRemove') : t('lockSet')) + '</button></div>' : '') +
+      '</div>';
+    document.body.appendChild(popEl);
+  }
+
+  /* ---------- Viewer ---------- */
+  let viewer = null;
+  function closeViewer() {
+    if (!viewer) return;
+    const v = viewer; viewer = null;
+    v.cleanups.forEach((fn) => { try { fn(); } catch (e) { /* ignore */ } });
+    v.urls.forEach((u) => URL.revokeObjectURL(u));
+    v.el.remove();
+    document.body.style.overflow = '';
+  }
+  function requestClose() { if (history.state && history.state.viewer) history.back(); else closeViewer(); }
+  window.addEventListener('popstate', () => { if (viewer) closeViewer(); });
+
+  async function openInApp(id) {
+    const item = state.files.find((f) => f.id === id);
+    if (!item) return;
+    let file;
+    try { file = await item.getFile(); }
+    catch (e) { toast(t('fileGone')); rescan(false); return; }
+    const url = URL.createObjectURL(file);
+    const a = document.createElement('a');
+    a.href = url; a.download = item.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    if (ls.get('tipOpen', '') === '1') toast(t('opening', cleanName(item.name)));
+    else showTip(item);
+  }
+
+  function showTip(item) {
+    const box = document.getElementById('tip');
+    if (IS_ANDROID) {
+      box.innerHTML = '<div class="tip-card" role="status"><span class="ftile k-' + item.kind + '">' + icon(item.kind) + '</span><div>' +
+        '<b>' + esc(t('tipAndroidTitle')) + '</b><p>' + esc(t('tipAndroidBody')) + '</p>' +
+        '<button class="btn small primary" data-action="tip-ok">' + esc(t('gotIt')) + '</button></div></div>';
+      return;
+    }
+    box.innerHTML = '<div class="tip-card" role="status"><span class="ftile k-' + item.kind + '">' + icon(item.kind) + '</span><div>' +
+      '<b>' + esc(t('tipTitle', appLabel(item))) + '</b><p>' + esc(t('tipBody')).replace('{EN}', '<bdi dir="ltr">(Always open files of this type)</bdi>') + '</p>' +
+      (IS_WINDOWS && state.helperFound ? '<p>' + esc(t('tipHelperHint')) + '</p>' : '') +
+      (item.kind === 'ppt' && state.openMode === 'page' ? '<p>' + esc(t('tipTwin')) + '</p>' : '') +
+      '<p class="small">' + esc(t('tipCopy')) + '</p>' +
+      '<button class="btn small primary" data-action="tip-ok">' + esc(t('gotIt')) + '</button></div></div>';
+  }
+
+  const useHelper = () => IS_WINDOWS && state.helper && state.helperFound;
+
+  // Opens the original file through the Windows opener helper (schoollib: link).
+  function openWithHelper(item) {
+    const a = document.createElement('a');
+    a.href = 'schoollib:' + encodeURIComponent(item.id);
+    document.body.appendChild(a); a.click(); a.remove();
+    if (ls.get('tipHelper', '') === '1') toast(t('openingApp', cleanName(item.name)));
+    else {
+      document.getElementById('tip').innerHTML = '<div class="tip-card" role="status"><span class="ftile k-' + item.kind + '">' + icon(item.kind) + '</span><div>' +
+        '<b>' + esc(t('tipHelperTitle')) + '</b><p>' + esc(t('tipHelperBody')) + '</p>' +
+        '<button class="btn small primary" data-action="tip-helper-ok">' + esc(t('gotIt')) + '</button></div></div>';
+    }
+  }
+
+  async function openItem(id) {
+    const item = state.files.find((f) => f.id === id);
+    if (!item) return;
+    if (APP) return openInPhoneApp(item);
+    if (state.openMode === 'apps') return useHelper() ? openWithHelper(item) : openInApp(id);
+    if (!inPage(item) && !item.twin) return openInApp(id);
+    const shown = item.twin || item;
+    let file;
+    try { file = await shown.getFile(); }
+    catch (e) { toast(t('fileGone')); rescan(false); return; }
+    const type = file.type || MIME[extOf(shown.name)] || 'application/octet-stream';
+    const blob = file.type ? file : new Blob([file], { type: type });
+
+    if (viewer) { closeViewer(); history.replaceState({ viewer: id }, ''); }
+    else history.pushState({ viewer: id }, '');
+    const el = document.createElement('div');
+    el.className = 'viewer'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
+    document.body.appendChild(el);
+    document.body.style.overflow = 'hidden';
+    viewer = { id, el, urls: [], cleanups: [], blob, item: shown };
+    const url = URL.createObjectURL(blob);
+    viewer.urls.push(url);
+    const where = [state.rootName].concat(item.path).join(' / ');
+    el.innerHTML = '<header class="vbar">' +
+      '<button class="icon-btn" data-action="close" aria-label="' + esc(t('back')) + '">' + icon('back', 'flip-rtl') + '</button>' +
+      '<div class="vtitle"><b>' + esc(cleanName(item.name)) + '</b><small>' + esc(where) + ' · ' + esc(t('k_' + item.kind)) + ' · ' + fmtSize(item.size) + '</small></div>' +
+      (item.twin ? '<button class="btn small" data-action="open-app" data-id="' + esc(item.id) + '">' + icon(item.kind) + esc(t('openIn', appLabel(item))) + '</button>' : '') +
+      (shown.kind === 'pdf' ? '<button class="icon-btn" data-action="new-tab" title="' + esc(t('newTab')) + '" aria-label="' + esc(t('newTab')) + '">' + icon('newTab') + '</button>' : '') +
+      '<button class="icon-btn" data-action="save-copy" title="' + esc(t('saveCopy')) + '" aria-label="' + esc(t('saveCopy')) + '">' + icon('download') + '</button>' +
+      '</header><div class="vbody"></div>';
+    const body = el.querySelector('.vbody');
+    const k = shown.kind, e = extOf(shown.name);
+
+    if (k === 'pdf') {
+      body.innerHTML = '<iframe class="pdf-frame" title="' + esc(item.name) + '"></iframe>';
+      body.querySelector('iframe').src = url;
+    } else if (k === 'audio') {
+      body.innerHTML = '<div class="vcenter"><div class="audio-view"><div class="audio-art">' + icon('audio') + '</div>' +
+        '<h2>' + esc(cleanName(item.name)) + '</h2><p class="where">' + esc(secName(item.section)) + '</p>' +
+        '<audio controls preload="metadata"></audio>' +
+        '<div class="speed"><span>' + esc(t('speed')) + '</span>' + [0.75, 1, 1.25, 1.5, 2].map((s) => '<button data-speed="' + s + '" aria-pressed="' + (s === 1) + '">' + s + '×</button>').join('') + '</div></div></div>';
+      const audio = body.querySelector('audio');
+      audio.src = url;
+      const key = 'pos:' + id;
+      audio.addEventListener('loadedmetadata', () => { const p = Number(ls.get(key, '0')); if (p > 5 && audio.duration && p < audio.duration - 5) audio.currentTime = p; });
+      let last = 0;
+      audio.addEventListener('timeupdate', () => { if (Date.now() - last > 4000) { last = Date.now(); ls.set(key, String(Math.floor(audio.currentTime))); } });
+      audio.addEventListener('ended', () => ls.del(key));
+      audio.addEventListener('error', () => { body.querySelector('.audio-view').insertAdjacentHTML('beforeend', '<p class="where" style="margin-top:16px">' + esc(t('cantPlay')) + '</p>'); });
+      body.querySelector('.speed').addEventListener('click', (ev) => {
+        const b = ev.target.closest('[data-speed]'); if (!b) return;
+        audio.playbackRate = Number(b.dataset.speed);
+        body.querySelectorAll('[data-speed]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      });
+      viewer.cleanups.push(() => { ls.set(key, String(Math.floor(audio.currentTime || 0))); audio.pause(); });
+      audio.play().catch(() => {});
+    } else if (k === 'video') {
+      body.innerHTML = '<div class="vcenter"><video class="media-video" controls playsinline preload="metadata"></video></div>';
+      const v = body.querySelector('video');
+      v.src = url;
+      v.onerror = () => { body.innerHTML = '<div class="vcenter"><p>' + esc(t('cantPlay')) + '</p></div>'; };
+      viewer.cleanups.push(() => v.pause());
+    } else if (k === 'image' && e !== 'heic') {
+      body.innerHTML = '<div class="vcenter"><img class="image-view" alt=""></div>';
+      body.querySelector('img').src = url;
+    } else if (e === 'txt' || e === 'csv') {
+      const text = await file.text();
+      body.innerHTML = '<div class="vcenter"><pre class="text-view"></pre></div>';
+      body.querySelector('pre').textContent = text;
+    }
+  }
+
+  function saveCopy() {
+    if (!viewer) return;
+    const a = document.createElement('a');
+    a.href = viewer.urls[0];
+    a.download = viewer.item.name;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  /* ---------- Events ---------- */
+  document.addEventListener('click', (ev) => {
+    const el = ev.target.closest('[data-action]');
+    if (!el) return;
+    switch (el.dataset.action) {
+      case 'choose': case 'change-folder': changeFolder(); break;
+      case 'lock-on': closeSettings(); pinDialog('set').then((ok) => { if (ok) { toast(t('lockedToast')); render(); } }); break;
+      case 'lock-off': closeSettings(); pinDialog('check', t('pinRemoveSub')).then((ok) => { if (ok) { ls.del('lock'); toast(t('unlockedToast')); render(); } }); break;
+      case 'open-remembered': openRemembered(); break;
+      case 'refresh': rescan(true); break;
+      case 'lang': setLang(state.lang === 'ar' ? 'en' : 'ar'); ls.set('lang', state.lang); render(); break;
+      case 'tab': state.tab = el.dataset.tab; ls.set('tab', state.tab); renderTabs(); renderContent(); break;
+      case 'type': state.type = el.dataset.type; renderTabs(); renderContent(); break;
+      case 'layout': state.layout = el.dataset.layout; ls.set('layout', state.layout);
+        document.querySelectorAll('[data-action="layout"]').forEach((b) => b.setAttribute('aria-pressed', String(b === el))); renderContent(); break;
+      case 'open': openItem(el.dataset.id); break;
+      case 'close': requestClose(); break;
+      case 'new-tab': if (viewer) window.open(viewer.urls[0], '_blank'); break;
+      case 'save-copy': saveCopy(); break;
+      case 'open-app': openInApp(el.dataset.id); break;
+      case 'tip-ok': ls.set('tipOpen', '1'); document.getElementById('tip').innerHTML = ''; break;
+      case 'tip-helper-ok': ls.set('tipHelper', '1'); document.getElementById('tip').innerHTML = ''; break;
+      case 'settings': openSettings(); break;
+      case 'close-settings': closeSettings(); break;
+      case 'set-mode': state.openMode = el.dataset.mode; ls.set('openMode', state.openMode); openSettings(); renderContent(); break;
+      case 'toggle-helper': state.helper = !state.helper; ls.set('helper', state.helper ? '1' : ''); openSettings(); break;
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && popEl) closeSettings();
+    else if (e.key === 'Escape' && viewer) requestClose();
+    if (e.key === '/' && state.view === 'main' && !viewer && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); document.getElementById('q').focus(); }
+  });
+  // New files added to the folder show up when you come back to the page.
+  let busy = false;
+  async function autoRefresh() {
+    const ready = APP ? state.appHasFolder : !!state.root;
+    if (busy || !ready || state.view !== 'main' || viewer || Date.now() - state.scannedAt < 15000) return;
+    busy = true;
+    try { if (APP) await openAppFolder(true); else await openHandle(state.root, true); } finally { busy = false; }
+  }
+  window.addEventListener('focus', autoRefresh);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') autoRefresh(); });
+
+  /* ---------- Start ---------- */
+  setLang(state.lang);
+  applyColor();
+  (async () => {
+    if (APP) { await openAppFolder(); return; }
+    if (canRemember) {
+      const h = await idbGet('root');
+      if (h) {
+        state.remembered = h;
+        try {
+          if ((await h.queryPermission({ mode: 'read' })) === 'granted') { await openHandle(h); return; }
+        } catch (e) { /* ask with a click */ }
+      }
+    }
+    render();
+  })();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- App icon: an open book -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#0F6E64" android:pathData="M24,6 L84,6 A18,18 0 0 1 102,24 L102,84 A18,18 0 0 1 84,102 L24,102 A18,18 0 0 1 6,84 L6,24 A18,18 0 0 1 24,6 Z" />
+    <path android:fillColor="#FAF7F0" android:pathData="M54,42.39 L25.62,36.97 L25.62,67.93 L54,73.35 Z" />
+    <path android:fillColor="#FAF7F0" android:pathData="M54,42.39 L82.38,36.97 L82.38,67.93 L54,73.35 Z" />
+    <path android:strokeColor="#D6CEBE" android:strokeWidth="1.03" android:strokeLineCap="round" android:pathData="M54,42.39 L54,73.35" />
+    <path android:strokeColor="#0F6E64" android:strokeWidth="1.89" android:strokeLineCap="round" android:pathData="M31.3,45.56 L48.32,47.69" />
+    <path android:strokeColor="#0F6E64" android:strokeWidth="1.89" android:strokeLineCap="round" android:pathData="M31.3,50.83 L48.32,52.96" />
+    <path android:strokeColor="#0F6E64" android:strokeWidth="1.89" android:strokeLineCap="round" android:pathData="M59.68,52.96 L76.7,50.83" />
+    <path android:strokeColor="#0F6E64" android:strokeWidth="1.89" android:strokeLineCap="round" android:pathData="M31.3,56.09 L48.32,58.22" />
+    <path android:strokeColor="#0F6E64" android:strokeWidth="1.89" android:strokeLineCap="round" android:pathData="M59.68,58.22 L76.7,56.09" />
+    <path android:strokeColor="#0F6E64" android:strokeWidth="1.89" android:strokeLineCap="round" android:pathData="M31.3,61.35 L48.32,63.48" />
+    <path android:strokeColor="#0F6E64" android:strokeWidth="1.89" android:strokeLineCap="round" android:pathData="M59.68,63.48 L76.7,61.35" />
+    <path android:fillColor="#F2A93B" android:pathData="M68.76,35.25 L75.21,35.25 L75.21,47.81 L71.98,45.33 L68.76,47.81 Z" />
+</vector>

@@ -1,0 +1,49 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Each GitHub build gets a higher version number, so a new .apk installs as an update.
+def buildNumber = (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
+
+android {
+    namespace 'org.schoollibrary.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'org.schoollibrary.app'
+        minSdk 24
+        targetSdk 34
+        versionCode buildNumber
+        versionName "1.${buildNumber}"
+    }
+
+    // A fixed signing key, so every new build can be installed over the previous one.
+    signingConfigs {
+        library {
+            storeFile file('library.keystore')
+            storePassword 'schoollibrary'
+            keyAlias 'library'
+            keyPassword 'schoollibrary'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.library
+        }
+        debug {
+            signingConfig signingConfigs.library
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+    }
+}
