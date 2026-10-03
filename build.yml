@@ -1,0 +1,88 @@
+# Builds the School Library Android app every time files in this repository change.
+# The finished app appears under "Releases" as school-library.apk.
+
+name: Build app
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  # Optional second place to find the library page, if index.html isn't in this repository.
+  PAGE_URL: https://quranons3-bot.github.io/Media/index.html
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Get the project files
+        uses: actions/checkout@v4
+
+      - name: Check all files are here
+        run: |
+          missing=0
+          for f in settings.gradle build.gradle gradle.properties app/build.gradle app/library-keystore.txt \
+                   app/src/main/AndroidManifest.xml app/src/main/java/org/schoollibrary/app/MainActivity.java \
+                   app/src/main/res/values/strings.xml app/src/main/res/values/colors.xml \
+                   app/src/main/res/drawable/ic_launcher.xml app/src/main/res/drawable/ic_launcher_foreground.xml \
+                   app/src/main/res/drawable-anydpi-v26/ic_launcher.xml; do
+            if [ ! -s "$f" ]; then echo "::error::Missing file: $f"; missing=1; fi
+          done
+          exit $missing
+
+      - name: Get the signing key
+        run: |
+          if ! tr -d '\r\n \t' < app/library-keystore.txt | base64 -d > app/library.keystore 2> /dev/null \
+             || ! keytool -list -keystore app/library.keystore -storepass schoollibrary > /dev/null 2>&1; then
+            echo "::error::app/library-keystore.txt is not complete. Copy it again from the code page, all of it."
+            exit 1
+          fi
+
+      - name: Get the library page
+        run: |
+          # The app keeps a copy of the library page inside, for use without internet.
+          rm -f page.html
+          if [ -s index.html ] && grep -q "__libraryApp" index.html; then
+            cp index.html page.html
+          else
+            curl -sSfL "$PAGE_URL?build=${{ github.run_number }}" -o page.html || true
+          fi
+          if ! grep -q "__libraryApp" page.html 2> /dev/null; then
+            echo "::error::index.html is missing or is an old version. Upload the new index.html to this repository (Add file, then Upload files). The build starts again by itself."
+            exit 1
+          fi
+          mkdir -p app/src/main/assets
+          cp page.html app/src/main/assets/index.html
+
+      - name: Use Java 17
+        run: echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+
+      - name: Get Gradle 8.9
+        run: |
+          curl -sSfL -o gradle.zip https://services.gradle.org/distributions/gradle-8.9-bin.zip
+          unzip -q gradle.zip -d "$HOME/gradle-dist"
+          echo "$HOME/gradle-dist/gradle-8.9/bin" >> "$GITHUB_PATH"
+
+      - name: Build the app
+        run: gradle assembleRelease --no-daemon --stacktrace
+
+      - name: Name the file
+        run: cp app/build/outputs/apk/release/app-release.apk school-library.apk
+
+      - name: Keep a copy with this run
+        uses: actions/upload-artifact@v4
+        with:
+          name: school-library-apk
+          path: school-library.apk
+
+      - name: Publish it under Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "build-${{ github.run_number }}" school-library.apk \
+            --title "School Library app (build ${{ github.run_number }})" \
+            --notes "Download school-library.apk on the phone and install it." \
+            --latest
